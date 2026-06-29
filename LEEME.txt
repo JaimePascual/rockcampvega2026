@@ -1,0 +1,11 @@
+Esta carpeta contiene las fotos que se muestran en la galería.
+
+Simplemente sube aquí tus imágenes (.jpg, .jpeg, .png, .webp, .gif, .avif).
+La web las detecta automáticamente la próxima vez que se cargue, no hace
+falta tocar ningún código.
+
+Sugerencia: si quieres controlar el orden en que aparecen, nombra los
+archivos con un prefijo numérico o de fecha, por ejemplo:
+  2026-07-01_001.jpg
+  2026-07-01_002.jpg
+La galería las ordena alfabéticamente por nombre de archivo.

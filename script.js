@@ -45,22 +45,21 @@ async function resolveRepoTarget() {
 
   // Probar primero como "página de proyecto" (repo = primer segmento de la ruta)
   if (detected.candidateRepo) {
-    const ok = await folderExists(detected.owner, detected.candidateRepo);
+    const ok = await repoExists(detected.owner, detected.candidateRepo);
     if (ok) return { owner: detected.owner, repo: detected.candidateRepo };
   }
 
   // Si no, probar como "página de usuario" (repo = usuario.github.io)
-  const okUserPage = await folderExists(detected.owner, detected.userPageRepo);
+  const okUserPage = await repoExists(detected.owner, detected.userPageRepo);
   if (okUserPage) return { owner: detected.owner, repo: detected.userPageRepo };
 
   return null;
 }
 
-async function folderExists(owner, repo) {
+// Comprueba que el repositorio existe (independiente de si tiene carpeta "fotos")
+async function repoExists(owner, repo) {
   try {
-    const res = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${PHOTOS_FOLDER}`
-    );
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
     return res.ok;
   } catch {
     return false;
@@ -74,6 +73,12 @@ async function fetchPhotoList(owner, repo) {
   const res = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/contents/${PHOTOS_FOLDER}`
   );
+
+  if (res.status === 404) {
+    const err = new Error(`No existe la carpeta "${PHOTOS_FOLDER}" en ${owner}/${repo}`);
+    err.code = 'FOLDER_NOT_FOUND';
+    throw err;
+  }
 
   if (!res.ok) {
     throw new Error(`GitHub API respondió ${res.status}`);
@@ -225,8 +230,13 @@ async function init() {
     renderGallery(photos);
   } catch (err) {
     console.error(err);
-    document.getElementById('error-detail').textContent =
-      'Comprueba tu conexión a internet o que la carpeta "fotos" existe en el repositorio.';
+    if (err.code === 'FOLDER_NOT_FOUND') {
+      document.getElementById('error-detail').textContent =
+        `No encuentro la carpeta "${PHOTOS_FOLDER}" en la raíz del repositorio. Comprueba que existe una carpeta llamada exactamente "${PHOTOS_FOLDER}" (en minúsculas) con las fotos dentro.`;
+    } else {
+      document.getElementById('error-detail').textContent =
+        'Comprueba tu conexión a internet o que la carpeta "fotos" existe en el repositorio.';
+    }
     showState('state-error');
   }
 }
